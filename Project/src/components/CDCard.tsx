@@ -3,6 +3,7 @@ import { useAppStore } from "@/lib/store";
 import { ShoppingCart, MessageSquare } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import { toast } from "sonner";
 
 interface CDCardProps {
   cd: CDProduct;
@@ -36,7 +37,7 @@ const CDCard = ({ cd, showSeller = true }: CDCardProps) => {
           </div>
         </div>
         <div className="p-4 space-y-2">
-          <h3 className="font-semibold text-foreground truncate" style={{ fontFamily: 'var(--font-heading)' }}>
+          <h3 className="font-semibold text-foreground truncate">
             {cd.title}
           </h3>
           <p className="text-sm text-muted-foreground truncate">{cd.artist} · {cd.year}</p>
@@ -63,7 +64,8 @@ const CDCard = ({ cd, showSeller = true }: CDCardProps) => {
           {currentUser && currentUser.id !== cd.sellerId && (
             <>
               <button
-                onClick={() => inCart ? navigate('/cart') : addToCart(cd)}
+                onClick={() => { if (inCart) { navigate('/cart'); } else { addToCart(cd); toast.success(`${cd.title} додано до корзини`); } }}
+                aria-label={inCart ? `${cd.title} — перейти до корзини` : `Купити ${cd.title}`}
                 className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
               >
                 <ShoppingCart className="h-3.5 w-3.5" />
@@ -71,6 +73,7 @@ const CDCard = ({ cd, showSeller = true }: CDCardProps) => {
               </button>
               <Link
                 to={`/messages?to=${cd.sellerId}&cd=${cd.id}`}
+                aria-label={`Написати продавцю про ${cd.title}`}
                 className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors"
               >
                 <MessageSquare className="h-3.5 w-3.5" />

@@ -35,7 +35,7 @@ const CDDetailPage = () => {
         <div className="space-y-6">
           <div>
             <span className="px-3 py-1 text-xs font-medium rounded-full bg-primary text-primary-foreground">{cd.genre}</span>
-            <h1 className="text-3xl font-bold text-foreground mt-3" style={{ fontFamily: 'var(--font-heading)' }}>{cd.title}</h1>
+            <h1 className="text-3xl font-bold font-heading text-foreground mt-3">{cd.title}</h1>
             <p className="text-lg text-muted-foreground mt-1">{cd.artist}</p>
           </div>
 

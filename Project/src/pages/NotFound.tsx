@@ -9,10 +9,10 @@ const NotFound = () => {
       <h1 className="text-6xl font-bold text-primary mb-4">404</h1>
       <p className="text-xl text-muted-foreground mb-2">Ой! Сторінку не знайдено.</p>
       <code className="bg-muted p-2 rounded text-sm mb-6">
-        {window.location.origin}/CD-Store{location.pathname}
+        {window.location.origin}{import.meta.env.BASE_URL.replace(/\/$/, '')}{location.pathname}
       </code>
       <Button asChild>
-        <Link href="/">Повернутися в магазин</Link>
+        <Link to="/">Повернутися в магазин</Link>
       </Button>
     </div>
   );

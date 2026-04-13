@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { GENRES, Genre } from "@/lib/mockData";
 import { motion } from "framer-motion";
 import { Plus } from "lucide-react";
+import { toast } from "sonner";
 
 const SellPage = () => {
   const { currentUser, addCD, cds, toggleCDActive } = useAppStore();
@@ -26,18 +27,32 @@ const SellPage = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title || !artist || !price) return;
+    const trimmedTitle = title.trim();
+    const trimmedArtist = artist.trim();
+    const numPrice = Number(price);
+
+    if (!trimmedTitle || !trimmedArtist) {
+      toast.error("Заповніть назву та виконавця");
+      return;
+    }
+    if (!price || numPrice <= 0) {
+      toast.error("Вкажіть коректну ціну (більше 0)");
+      return;
+    }
+
     addCD({
-      title, artist, genre, price: Number(price), year: Number(year) || 2024,
-      condition, description,
+      title: trimmedTitle, artist: trimmedArtist, genre, price: numPrice,
+      year: Number(year) || new Date().getFullYear(),
+      condition, description: description.trim(),
       coverUrl: `https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?w=300&h=300&fit=crop`,
     });
+    toast.success("Диск додано!");
     setTitle(""); setArtist(""); setPrice(""); setYear(""); setDescription("");
   };
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-3xl">
-      <h1 className="text-3xl font-bold mb-6" style={{ fontFamily: 'var(--font-heading)' }}>
+      <h1 className="text-3xl font-bold font-heading mb-6">
         <Plus className="inline h-8 w-8 text-primary mr-2" />
         Продати диск
       </h1>
@@ -51,12 +66,12 @@ const SellPage = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label className="text-sm font-medium text-foreground mb-1.5 block">Назва альбому *</label>
-            <input value={title} onChange={e => setTitle(e.target.value)} required placeholder="Nevermind"
+            <input value={title} onChange={e => setTitle(e.target.value)} required maxLength={100} placeholder="Nevermind"
               className="w-full px-4 py-2.5 rounded-lg bg-secondary border border-border text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50" />
           </div>
           <div>
             <label className="text-sm font-medium text-foreground mb-1.5 block">Виконавець *</label>
-            <input value={artist} onChange={e => setArtist(e.target.value)} required placeholder="Nirvana"
+            <input value={artist} onChange={e => setArtist(e.target.value)} required maxLength={100} placeholder="Nirvana"
               className="w-full px-4 py-2.5 rounded-lg bg-secondary border border-border text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50" />
           </div>
           <div>
@@ -77,7 +92,7 @@ const SellPage = () => {
           </div>
           <div>
             <label className="text-sm font-medium text-foreground mb-1.5 block">Ціна (₴) *</label>
-            <input type="number" value={price} onChange={e => setPrice(e.target.value)} required placeholder="350"
+            <input type="number" value={price} onChange={e => setPrice(e.target.value)} required min={1} placeholder="350"
               className="w-full px-4 py-2.5 rounded-lg bg-secondary border border-border text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50" />
           </div>
           <div>
@@ -88,7 +103,7 @@ const SellPage = () => {
         </div>
         <div>
           <label className="text-sm font-medium text-foreground mb-1.5 block">Опис</label>
-          <textarea value={description} onChange={e => setDescription(e.target.value)} rows={3} placeholder="Опишіть стан диску..."
+          <textarea value={description} onChange={e => setDescription(e.target.value)} rows={3} maxLength={500} placeholder="Опишіть стан диску..."
             className="w-full px-4 py-2.5 rounded-lg bg-secondary border border-border text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 resize-none" />
         </div>
         <button type="submit"
@@ -99,7 +114,7 @@ const SellPage = () => {
 
       {myCDs.length > 0 && (
         <div>
-          <h2 className="text-xl font-bold mb-4" style={{ fontFamily: 'var(--font-heading)' }}>Мої диски</h2>
+          <h2 className="text-xl font-bold font-heading mb-4">Мої диски</h2>
           <div className="space-y-3">
             {myCDs.map(cd => (
               <div key={cd.id} className={`flex items-center gap-4 bg-card border rounded-xl p-4 transition-opacity ${!cd.active ? 'opacity-50 border-border' : 'border-border'}`}>

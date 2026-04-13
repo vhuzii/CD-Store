@@ -10,7 +10,6 @@ const AuthPage = () => {
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (session) {
-        console.log("Login successful, redirection...");
         navigate("/");
       }
     });
@@ -30,9 +29,8 @@ const AuthPage = () => {
   }, [navigate]);
 
   const handleGoogleLogin = async () => {
-    const isGithubPages = window.location.hostname.includes("github.io");
-    const repoPath = isGithubPages ? 'CD-Store' : '';
-    const redirectUrl = `${window.location.origin}/${repoPath}/#/auth`;
+    const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+    const redirectUrl = `${window.location.origin}${base}/auth`;
 
     await supabase.auth.signInWithOAuth({
       provider: "google",
@@ -49,7 +47,7 @@ const AuthPage = () => {
         animate={{ opacity: 1, scale: 1 }}
         className="w-full max-w-md bg-card border border-border rounded-2xl p-8 shadow-card"
       >
-        <h1 className="text-2xl font-bold mb-6 text-center" style={{ fontFamily: 'var(--font-heading)' }}>
+        <h1 className="text-2xl font-bold font-heading mb-6 text-center">
           Вхід
         </h1>
 

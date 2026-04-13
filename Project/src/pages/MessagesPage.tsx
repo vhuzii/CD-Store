@@ -57,7 +57,7 @@ const MessagesPage = () => {
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
-      <h1 className="text-3xl font-bold mb-6" style={{ fontFamily: 'var(--font-heading)' }}>Повідомлення</h1>
+      <h1 className="text-3xl font-bold font-heading mb-6">Повідомлення</h1>
 
       <div className="flex gap-4 h-[60vh] bg-card border border-border rounded-2xl overflow-hidden">
         {/* Sidebar */}
@@ -131,6 +131,7 @@ const MessagesPage = () => {
                 <button
                   onClick={handleSend}
                   disabled={!text.trim()}
+                  aria-label="Надіслати повідомлення"
                   className="px-4 py-2.5 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50"
                 >
                   <Send className="h-4 w-4" />
