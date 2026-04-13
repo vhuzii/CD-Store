@@ -41,7 +41,7 @@ const CatalogPage = ({ sellerId }: CatalogFiltersProps) => {
     <div className="container mx-auto px-4 py-8">
       {seller ? (
         <div className="mb-8">
-          <h1 className="text-3xl font-bold" style={{ fontFamily: 'var(--font-heading)' }}>
+          <h1 className="text-3xl font-bold font-heading">
             Диски від <span className="text-gradient-gold">{seller.name}</span>
           </h1>
           <p className="text-muted-foreground mt-1">На платформі з {seller.joinedAt}</p>
@@ -51,9 +51,8 @@ const CatalogPage = ({ sellerId }: CatalogFiltersProps) => {
           <motion.h1
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-4xl md:text-5xl font-bold mb-3"
-            style={{ fontFamily: 'var(--font-heading)' }}
-          >
+            className="text-4xl md:text-5xl font-bold font-heading mb-3"
+                     >
             Знайди свій <span className="text-gradient-gold">диск</span>
           </motion.h1>
           <p className="text-muted-foreground text-lg">Маркетплейс CD-дисків в Україні</p>
@@ -65,6 +64,8 @@ const CatalogPage = ({ sellerId }: CatalogFiltersProps) => {
         <div className="lg:w-72 shrink-0">
           <button
             onClick={() => setShowFilters(!showFilters)}
+            aria-label={showFilters ? "Сховати фільтри" : "Показати фільтри"}
+            aria-expanded={showFilters}
             className="lg:hidden flex items-center gap-2 px-4 py-2 rounded-lg bg-secondary text-secondary-foreground mb-4"
           >
             <SlidersHorizontal className="h-4 w-4" />
@@ -95,6 +96,7 @@ const CatalogPage = ({ sellerId }: CatalogFiltersProps) => {
                   <button
                     key={genre}
                     onClick={() => toggleGenre(genre)}
+                    aria-pressed={selectedGenres.includes(genre)}
                     className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
                       selectedGenres.includes(genre)
                         ? "bg-primary text-primary-foreground"
@@ -116,7 +118,10 @@ const CatalogPage = ({ sellerId }: CatalogFiltersProps) => {
                   min={0}
                   max={priceRange[1]}
                   value={priceRange[0]}
-                  onChange={e => setPriceRange([Number(e.target.value), priceRange[1]])}
+                  onChange={e => {
+                    const val = Number(e.target.value);
+                    setPriceRange([Math.min(val, priceRange[1]), priceRange[1]]);
+                  }}
                   placeholder="Від"
                   className="w-full px-3 py-2 rounded-lg bg-secondary text-foreground border border-border focus:border-primary focus:outline-none text-sm"
                 />
@@ -126,7 +131,10 @@ const CatalogPage = ({ sellerId }: CatalogFiltersProps) => {
                   min={priceRange[0]}
                   max={maxPrice}
                   value={priceRange[1]}
-                  onChange={e => setPriceRange([priceRange[0], Number(e.target.value)])}
+                  onChange={e => {
+                    const val = Number(e.target.value);
+                    setPriceRange([priceRange[0], Math.max(val, priceRange[0])]);
+                  }}
                   placeholder="До"
                   className="w-full px-3 py-2 rounded-lg bg-secondary text-foreground border border-border focus:border-primary focus:outline-none text-sm"
                 />

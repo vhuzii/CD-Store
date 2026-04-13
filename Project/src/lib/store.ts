@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 import { CDProduct, CartItem, Message, User, mockCDs, mockMessages, mockUsers } from './mockData';
 
 interface AppState {
@@ -8,6 +9,7 @@ interface AppState {
   messages: Message[];
   users: User[];
 
+  setCurrentUser: (user: User | null) => void;
   login: (userId: string) => void;
   logout: () => void;
   register: (name: string) => void;
@@ -22,77 +24,92 @@ interface AppState {
   sendMessage: (toUserId: string, text: string, cdRefId?: string) => void;
 }
 
-export const useAppStore = create<AppState>((set, get) => ({
-  currentUser: null,
-  cds: mockCDs,
-  cart: [],
-  messages: mockMessages,
-  users: mockUsers,
+export const useAppStore = create<AppState>()(
+  persist(
+    (set, get) => ({
+      currentUser: null,
+      cds: mockCDs,
+      cart: [],
+      messages: mockMessages,
+      users: mockUsers,
 
-  login: (userId) => {
-    const user = get().users.find(u => u.id === userId);
-    if (user) set({ currentUser: user });
-  },
+      setCurrentUser: (user) => set({ currentUser: user }),
 
-  logout: () => set({ currentUser: null, cart: [] }),
+      login: (userId) => {
+        const user = get().users.find(u => u.id === userId);
+        if (user) set({ currentUser: user });
+      },
 
-  register: (name) => {
-    const newUser: User = {
-      id: `u${Date.now()}`,
-      name,
-      joinedAt: new Date().toISOString().split('T')[0],
-    };
-    set(s => ({ users: [...s.users, newUser], currentUser: newUser }));
-  },
+      logout: () => set({ currentUser: null, cart: [] }),
 
-  addToCart: (cd) => {
-    set(s => {
-      const existing = s.cart.find(i => i.cd.id === cd.id);
-      if (existing) return s;
-      return { cart: [...s.cart, { cd, quantity: 1 }] };
-    });
-  },
+      register: (name) => {
+        const newUser: User = {
+          id: crypto.randomUUID(),
+          name,
+          joinedAt: new Date().toISOString().split('T')[0],
+        };
+        set(s => ({ users: [...s.users, newUser], currentUser: newUser }));
+      },
 
-  removeFromCart: (cdId) => {
-    set(s => ({ cart: s.cart.filter(i => i.cd.id !== cdId) }));
-  },
+      addToCart: (cd) => {
+        set(s => {
+          const existing = s.cart.find(i => i.cd.id === cd.id);
+          if (existing) return s;
+          return { cart: [...s.cart, { cd, quantity: 1 }] };
+        });
+      },
 
-  clearCart: () => set({ cart: [] }),
+      removeFromCart: (cdId) => {
+        set(s => ({ cart: s.cart.filter(i => i.cd.id !== cdId) }));
+      },
 
-  addCD: (cdData) => {
-    const user = get().currentUser;
-    if (!user) return;
-    const newCD: CDProduct = {
-      ...cdData,
-      id: `cd${Date.now()}`,
-      sellerId: user.id,
-      sellerName: user.name,
-      active: true,
-    };
-    set(s => ({ cds: [...s.cds, newCD] }));
-  },
+      clearCart: () => set({ cart: [] }),
 
-  toggleCDActive: (cdId) => {
-    set(s => ({
-      cds: s.cds.map(cd =>
-        cd.id === cdId && cd.sellerId === get().currentUser?.id
-          ? { ...cd, active: !cd.active }
-          : cd
-      ),
-    }));
-  },
+      addCD: (cdData) => {
+        const user = get().currentUser;
+        if (!user) return;
+        const newCD: CDProduct = {
+          ...cdData,
+          id: crypto.randomUUID(),
+          sellerId: user.id,
+          sellerName: user.name,
+          active: true,
+        };
+        set(s => ({ cds: [...s.cds, newCD] }));
+      },
 
-  sendMessage: (toUserId, text, cdRefId) => {
-    const user = get().currentUser;
-    if (!user) return;
-    const msg: Message = {
-      id: `m${Date.now()}`,
-      fromUserId: user.id,
-      toUserId,
-      text,
-      cdRefId,
-      timestamp: new Date().toISOString(),
-    };
-    set(s => ({ messages: [...s.messages, msg] }));
-  },
-}));
+      toggleCDActive: (cdId) => {
+        set(s => ({
+          cds: s.cds.map(cd =>
+            cd.id === cdId && cd.sellerId === s.currentUser?.id
+              ? { ...cd, active: !cd.active }
+              : cd
+          ),
+        }));
+      },
+
+      sendMessage: (toUserId, text, cdRefId) => {
+        const user = get().currentUser;
+        if (!user) return;
+        const msg: Message = {
+          id: crypto.randomUUID(),
+          fromUserId: user.id,
+          toUserId,
+          text,
+          cdRefId,
+          timestamp: new Date().toISOString(),
+        };
+        set(s => ({ messages: [...s.messages, msg] }));
+      },
+    }),
+    {
+      name: 'cd-store',
+      partialize: (state) => ({
+        currentUser: state.currentUser,
+        cart: state.cart,
+        cds: state.cds,
+        messages: state.messages,
+      }),
+    }
+  )
+);

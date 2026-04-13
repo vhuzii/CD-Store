@@ -3,6 +3,7 @@ import { useAppStore } from "@/lib/store";
 import { useNavigate, Link } from "react-router-dom";
 import { CheckCircle, AlertTriangle } from "lucide-react";
 import { motion } from "framer-motion";
+import { toast } from "sonner";
 
 const CheckoutPage = () => {
   const { currentUser, cart, clearCart, sendMessage } = useAppStore();
@@ -44,16 +45,34 @@ const CheckoutPage = () => {
 
   const handleCheckout = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!fullName.trim() || !phone.trim() || !novaPoshtaAddress.trim()) return;
+    const trimmedName = fullName.trim();
+    const trimmedPhone = phone.trim();
+    const trimmedAddress = novaPoshtaAddress.trim();
 
-    bySeller.forEach((items, sellerId) => {
-      const itemsList = items.map(i => `• ${i.cd.title} — ${i.cd.artist} (${i.cd.price} ₴)`).join("\n");
-      const msg = `🛒 Нове замовлення!\n\nДиски:\n${itemsList}\n\nПокупець: ${fullName}\nТелефон: ${phone}\nДоставка (Нова Пошта): ${novaPoshtaAddress}${comment.trim() ? `\nКоментар: ${comment.trim()}` : ""}`;
-      sendMessage(sellerId, msg);
-    });
+    if (!trimmedName || !trimmedPhone || !trimmedAddress) {
+      toast.error("Заповніть усі обов'язкові поля");
+      return;
+    }
 
-    clearCart();
-    setSubmitted(true);
+    const phoneRegex = /^\+?3?8?0\d{9}$/;
+    if (!phoneRegex.test(trimmedPhone.replace(/[\s\-()]/g, ""))) {
+      toast.error("Невірний формат телефону (очікується +380XXXXXXXXX)");
+      return;
+    }
+
+    try {
+      bySeller.forEach((items, sellerId) => {
+        const itemsList = items.map(i => `• ${i.cd.title} — ${i.cd.artist} (${i.cd.price} ₴)`).join("\n");
+        const msg = `🛒 Нове замовлення!\n\nДиски:\n${itemsList}\n\nПокупець: ${trimmedName}\nТелефон: ${trimmedPhone}\nДоставка (Нова Пошта): ${trimmedAddress}${comment.trim() ? `\nКоментар: ${comment.trim()}` : ""}`;
+        sendMessage(sellerId, msg);
+      });
+
+      clearCart();
+      setSubmitted(true);
+      toast.success("Замовлення оформлено!");
+    } catch {
+      toast.error("Помилка при оформленні замовлення");
+    }
   };
 
   if (submitted) {
@@ -65,7 +84,7 @@ const CheckoutPage = () => {
           className="text-center"
         >
           <CheckCircle className="h-16 w-16 text-primary mx-auto mb-4" />
-          <h2 className="text-2xl font-bold mb-2" style={{ fontFamily: 'var(--font-heading)' }}>Замовлення оформлено!</h2>
+          <h2 className="text-2xl font-bold font-heading mb-2">Замовлення оформлено!</h2>
           <p className="text-muted-foreground mb-4">Повідомлення надіслано продавцям</p>
           <Link to="/messages" className="text-primary hover:underline">Перейти до повідомлень</Link>
         </motion.div>
@@ -75,7 +94,7 @@ const CheckoutPage = () => {
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-lg">
-      <h1 className="text-3xl font-bold mb-6" style={{ fontFamily: 'var(--font-heading)' }}>Оформлення</h1>
+      <h1 className="text-3xl font-bold font-heading mb-6">Оформлення</h1>
 
       {multipleSellers && (
         <div className="flex items-start gap-3 p-4 mb-6 rounded-xl bg-accent/10 border border-accent/30">
@@ -121,22 +140,22 @@ const CheckoutPage = () => {
       >
         <div>
           <label className="text-sm font-medium text-foreground mb-1.5 block">ПІБ *</label>
-          <input value={fullName} onChange={e => setFullName(e.target.value)} required placeholder="Іваненко Іван Іванович"
+          <input value={fullName} onChange={e => setFullName(e.target.value)} required maxLength={100} placeholder="Іваненко Іван Іванович"
             className="w-full px-4 py-2.5 rounded-lg bg-secondary border border-border text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50" />
         </div>
         <div>
           <label className="text-sm font-medium text-foreground mb-1.5 block">Номер телефону *</label>
-          <input value={phone} onChange={e => setPhone(e.target.value)} required placeholder="+380 XX XXX XX XX"
+          <input value={phone} onChange={e => setPhone(e.target.value)} required maxLength={20} placeholder="+380 XX XXX XX XX"
             className="w-full px-4 py-2.5 rounded-lg bg-secondary border border-border text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50" />
         </div>
         <div>
           <label className="text-sm font-medium text-foreground mb-1.5 block">Адреса Нової Пошти *</label>
-          <input value={novaPoshtaAddress} onChange={e => setNovaPoshtaAddress(e.target.value)} required placeholder="м. Київ, відділення №25"
+          <input value={novaPoshtaAddress} onChange={e => setNovaPoshtaAddress(e.target.value)} required maxLength={200} placeholder="м. Київ, відділення №25"
             className="w-full px-4 py-2.5 rounded-lg bg-secondary border border-border text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50" />
         </div>
         <div>
           <label className="text-sm font-medium text-foreground mb-1.5 block">Коментар</label>
-          <textarea value={comment} onChange={e => setComment(e.target.value)} placeholder="Побажання до замовлення..." rows={3}
+          <textarea value={comment} onChange={e => setComment(e.target.value)} placeholder="Побажання до замовлення..." rows={3} maxLength={500}
             className="w-full px-4 py-2.5 rounded-lg bg-secondary border border-border text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 resize-none" />
         </div>
         <button type="submit"

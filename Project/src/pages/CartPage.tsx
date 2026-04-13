@@ -2,6 +2,7 @@ import { useAppStore } from "@/lib/store";
 import { Link, useNavigate } from "react-router-dom";
 import { Trash2, ShoppingBag } from "lucide-react";
 import { motion } from "framer-motion";
+import { toast } from "sonner";
 
 const CartPage = () => {
   const { cart, removeFromCart, currentUser } = useAppStore();
@@ -24,7 +25,7 @@ const CartPage = () => {
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-2xl">
-      <h1 className="text-3xl font-bold mb-6" style={{ fontFamily: 'var(--font-heading)' }}>
+      <h1 className="text-3xl font-bold font-heading mb-6">
         <ShoppingBag className="inline h-8 w-8 text-primary mr-2" />
         Корзина
       </h1>
@@ -54,7 +55,7 @@ const CartPage = () => {
               </div>
               <span className="text-primary font-bold whitespace-nowrap">{item.cd.price} ₴</span>
               <button
-                onClick={() => removeFromCart(item.cd.id)}
+                onClick={() => { removeFromCart(item.cd.id); toast.success(`${item.cd.title} видалено з корзини`); }}
                 className="p-2 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
               >
                 <Trash2 className="h-4 w-4" />
